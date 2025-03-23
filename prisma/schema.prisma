@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model notificaciones {
+  id          Int       @id @default(autoincrement())
+  vehicle_id  Int
+  paradero_id Int
+  mensaje     String    @db.VarChar(255)
+  timestamp   DateTime  @db.DateTime(0)
+  vehiculos   vehiculos @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notificaciones_ibfk_1")
+  paraderos   paraderos @relation(fields: [paradero_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notificaciones_ibfk_2")
+
+  @@index([paradero_id], map: "paradero_id")
+  @@index([vehicle_id], map: "vehicle_id")
+}
+
+model paraderos {
+  id             Int              @id @default(autoincrement())
+  nombre         String           @db.VarChar(100)
+  latitude       Decimal          @db.Decimal(9, 6)
+  longitude      Decimal          @db.Decimal(9, 6)
+  radio          Float            @db.Float
+  notificaciones notificaciones[]
+}
+
+model sensor_data_4g {
+  id         Int       @id @default(autoincrement())
+  vehicle_id Int
+  latitude   Decimal   @db.Decimal(9, 6)
+  longitude  Decimal   @db.Decimal(9, 6)
+  velocidad  Float     @db.Float
+  timestamp  DateTime? @db.DateTime(0)
+  vehiculos  vehiculos @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "sensor_data_4g_ibfk_1")
+
+  @@index([vehicle_id], map: "vehicle_id")
+}
+
+model users_4G {
+  id        Int         @id @default(autoincrement())
+  username  String      @db.VarChar(100)
+  password  String      @db.VarChar(100)
+  client_id String      @db.VarChar(100)
+  vehiculos vehiculos[]
+}
+
+model vehiculos {
+  id             Int              @id @default(autoincrement())
+  placa          String           @db.VarChar(10)
+  user_id        Int
+  cliente_id     String           @db.VarChar(100)
+  notificaciones notificaciones[]
+  sensor_data_4g sensor_data_4g[]
+  users_4G       users_4G         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "vehiculos_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
